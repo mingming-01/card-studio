@@ -1,0 +1,464 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family:
+        Arial,
+        "Noto Sans KR",
+        sans-serif;
+    background: #f4f5f7;
+    color: #222;
+}
+
+button,
+input,
+textarea {
+    font: inherit;
+}
+
+button,
+label {
+    -webkit-tap-highlight-color: transparent;
+}
+
+
+/* =========================
+   Header
+========================= */
+
+.header {
+    background: #222;
+    color: white;
+    padding: 42px 20px;
+}
+
+.header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.header h1 {
+    margin: 0 0 10px;
+    font-size: 32px;
+}
+
+.header p {
+    margin: 0;
+    color: #d5d5d5;
+    line-height: 1.6;
+}
+
+
+/* =========================
+   Layout
+========================= */
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 20px 60px;
+}
+
+.editor {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.section {
+    background: white;
+    border: 1px solid #e2e4e8;
+    border-radius: 14px;
+    padding: 24px;
+    box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
+}
+
+.section h2 {
+    margin: 0 0 18px;
+    font-size: 20px;
+}
+
+
+/* =========================
+   File
+========================= */
+
+.file-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 46px;
+    padding: 0 20px;
+    border-radius: 8px;
+    background: #222;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.file-button:hover {
+    opacity: 0.8;
+}
+
+.file-button input {
+    display: none;
+}
+
+.help-text {
+    margin: 10px 0 0;
+    color: #777;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+.status {
+    min-height: 20px;
+    margin: 8px 0 0;
+    font-size: 14px;
+}
+
+
+/* =========================
+   Ratio
+========================= */
+
+.ratio-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+.ratio-button {
+    min-height: 78px;
+    padding: 12px;
+    border: 2px solid #e1e3e7;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    transition:
+        border-color 0.2s,
+        background 0.2s,
+        transform 0.1s;
+}
+
+.ratio-button:hover {
+    transform: translateY(-1px);
+}
+
+.ratio-button.active {
+    border-color: #222;
+    background: #f0f0f0;
+}
+
+.ratio-button strong {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.ratio-button span {
+    color: #777;
+    font-size: 13px;
+}
+
+
+/* =========================
+   Canvas
+========================= */
+
+.canvas-area {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background: #f0f1f3;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#canvas {
+    display: block;
+    width: min(100%, 560px);
+    height: auto;
+    background: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.12);
+}
+
+
+/* =========================
+   Text controls
+========================= */
+
+.text-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.control {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.control > label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.control input[type="text"],
+.control textarea,
+.template-save input {
+    width: 100%;
+    border: 1px solid #d8dbe0;
+    border-radius: 8px;
+    padding: 12px;
+    background: white;
+    outline: none;
+}
+
+.control textarea {
+    min-height: 100px;
+    resize: vertical;
+    line-height: 1.5;
+}
+
+.control input[type="text"]:focus,
+.control textarea:focus,
+.template-save input:focus {
+    border-color: #222;
+}
+
+.input-info {
+    align-self: flex-end;
+    color: #888;
+    font-size: 12px;
+}
+
+.range-control {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.range-control input {
+    flex: 1;
+}
+
+.range-control span {
+    width: 60px;
+    text-align: right;
+    font-size: 14px;
+    color: #555;
+}
+
+.color-control {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.color-control input[type="color"] {
+    width: 48px;
+    height: 38px;
+    padding: 2px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+
+.color-control span {
+    font-size: 14px;
+}
+
+
+/* =========================
+   Template
+========================= */
+
+.template-save {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.template-save input {
+    flex: 1;
+}
+
+.template-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.template-empty {
+    padding: 20px;
+    border-radius: 8px;
+    background: #f5f5f5;
+    color: #777;
+    text-align: center;
+    font-size: 14px;
+}
+
+.template-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid #e1e3e7;
+    border-radius: 10px;
+}
+
+.template-name {
+    min-width: 0;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+.template-actions {
+    display: flex;
+    flex-shrink: 0;
+    gap: 6px;
+}
+
+.template-actions button {
+    padding: 7px 10px;
+    border: 1px solid #d5d7db;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+}
+
+.template-actions button:hover {
+    background: #f1f1f1;
+}
+
+
+/* =========================
+   JSON
+========================= */
+
+.json-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.primary-button,
+.secondary-button {
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.primary-button {
+    border: none;
+    background: #222;
+    color: white;
+}
+
+.secondary-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #d5d7db;
+    background: white;
+    color: #222;
+}
+
+.secondary-button:hover {
+    background: #f5f5f5;
+}
+
+.json-file-button input {
+    display: none;
+}
+
+
+/* =========================
+   Download
+========================= */
+
+.download-area {
+    display: flex;
+    justify-content: center;
+    padding-top: 4px;
+}
+
+.download-button {
+    width: 100%;
+    min-height: 54px;
+    border: none;
+    border-radius: 10px;
+    background: #222;
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.download-button:hover {
+    opacity: 0.85;
+}
+
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 650px) {
+
+    .header {
+        padding: 32px 18px;
+    }
+
+    .header h1 {
+        font-size: 26px;
+    }
+
+    .container {
+        padding: 20px 12px 40px;
+    }
+
+    .section {
+        padding: 18px;
+    }
+
+    .ratio-buttons {
+        grid-template-columns: 1fr;
+    }
+
+    .ratio-button {
+        min-height: 64px;
+    }
+
+    .template-save {
+        flex-direction: column;
+    }
+
+    .template-item {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .template-actions {
+        width: 100%;
+    }
+
+    .template-actions button {
+        flex: 1;
+    }
+
+    .canvas-area {
+        padding: 10px;
+    }
+}

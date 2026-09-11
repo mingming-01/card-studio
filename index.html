@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>이미지 카드 편집기</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="header-inner">
+        <h1>이미지 카드 편집기</h1>
+        <p>이미지를 선택하고 원하는 비율과 문구를 설정해보세요.</p>
+    </div>
+</header>
+
+
+<main class="container">
+
+    <section class="editor">
+
+        <!-- 이미지 -->
+        <div class="section">
+
+            <h2>1. 이미지 선택</h2>
+
+            <label class="file-button">
+                이미지 선택
+                <input
+                    type="file"
+                    id="imageInput"
+                    accept="image/png,image/jpeg"
+                >
+            </label>
+
+            <p class="help-text">
+                PNG 또는 JPEG 이미지만 사용할 수 있습니다.
+            </p>
+
+            <p id="imageStatus" class="status"></p>
+
+        </div>
+
+
+        <!-- 비율 -->
+        <div class="section">
+
+            <h2>2. 카드 비율</h2>
+
+            <div class="ratio-buttons">
+
+                <button
+                    type="button"
+                    class="ratio-button active"
+                    data-ratio="1:1"
+                >
+                    <strong>1 : 1</strong>
+                    <span>정사각형</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="ratio-button"
+                    data-ratio="4:5"
+                >
+                    <strong>4 : 5</strong>
+                    <span>세로형</span>
+                </button>
+
+                <button
+                    type="button"
+                    class="ratio-button"
+                    data-ratio="9:16"
+                >
+                    <strong>9 : 16</strong>
+                    <span>스토리</span>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- 미리보기 -->
+        <div class="section">
+
+            <h2>3. 미리보기</h2>
+
+            <div class="canvas-area">
+                <canvas id="canvas"></canvas>
+            </div>
+
+        </div>
+
+
+        <!-- 문구 -->
+        <div class="section">
+
+            <h2>4. 문구 설정</h2>
+
+            <div class="text-controls">
+
+                <div class="control">
+
+                    <label for="textInput">
+                        문구
+                    </label>
+
+                    <textarea
+                        id="textInput"
+                        rows="4"
+                        maxlength="500"
+                        placeholder="카드에 넣을 문구를 입력하세요."
+                    ></textarea>
+
+                    <span id="textLength" class="input-info">
+                        0 / 500
+                    </span>
+
+                </div>
+
+
+                <div class="control">
+
+                    <label for="fontSize">
+                        글자 크기
+                    </label>
+
+                    <div class="range-control">
+
+                        <input
+                            type="range"
+                            id="fontSize"
+                            min="20"
+                            max="200"
+                            value="60"
+                        >
+
+                        <span id="fontSizeValue">60px</span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="control">
+
+                    <label for="textColor">
+                        글자 색상
+                    </label>
+
+                    <div class="color-control">
+
+                        <input
+                            type="color"
+                            id="textColor"
+                            value="#222222"
+                        >
+
+                        <span id="textColorValue">
+                            #222222
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="control">
+
+                    <label for="textX">
+                        가로 위치
+                    </label>
+
+                    <div class="range-control">
+
+                        <input
+                            type="range"
+                            id="textX"
+                            min="0"
+                            max="100"
+                            value="50"
+                        >
+
+                        <span id="textXValue">50%</span>
+
+                    </div>
+
+                </div>
+
+
+                <div class="control">
+
+                    <label for="textY">
+                        세로 위치
+                    </label>
+
+                    <div class="range-control">
+
+                        <input
+                            type="range"
+                            id="textY"
+                            min="0"
+                            max="100"
+                            value="50"
+                        >
+
+                        <span id="textYValue">50%</span>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- 템플릿 -->
+        <div class="section">
+
+            <h2>5. 템플릿 관리</h2>
+
+            <div class="template-save">
+
+                <input
+                    type="text"
+                    id="templateName"
+                    maxlength="50"
+                    placeholder="템플릿 이름"
+                >
+
+                <button
+                    type="button"
+                    id="saveTemplateButton"
+                    class="primary-button"
+                >
+                    템플릿 저장
+                </button>
+
+            </div>
+
+            <div
+                id="templateList"
+                class="template-list"
+            ></div>
+
+            <div id="templateEditArea" class="template-edit-area" hidden>
+                <input
+                    type="text"
+                    id="editTemplateName"
+                    maxlength="50"
+                    placeholder="수정할 템플릿 이름"
+                >
+
+                <button
+                    type="button"
+                    id="confirmEditTemplateButton"
+                    class="primary-button"
+                >
+                    수정 저장
+                </button>
+
+                <button
+                    type="button"
+                    id="cancelEditTemplateButton"
+                    class="secondary-button"
+                >
+                    취소
+                </button>
+            </div>
+
+            <p id="templateStatus" class="status"></p>
+
+        </div>
+
+
+        <!-- JSON -->
+        <div class="section">
+
+            <h2>6. 템플릿 JSON</h2>
+
+            <div class="json-buttons">
+
+                <button
+                    type="button"
+                    id="exportJsonButton"
+                    class="secondary-button"
+                >
+                    JSON 내보내기
+                </button>
+
+                <label class="secondary-button json-file-button">
+                    JSON 가져오기
+                    <input
+                        type="file"
+                        id="jsonInput"
+                        accept=".json,application/json"
+                    >
+                </label>
+
+            </div>
+
+            <p class="help-text">
+                정상 JSON만 가져오며, 잘못된 JSON은 기존 템플릿을 변경하지 않습니다.
+            </p>
+
+            <p id="jsonStatus" class="status"></p>
+
+        </div>
+
+
+        <!-- 저장 -->
+        <div class="download-area">
+
+            <button
+                type="button"
+                id="downloadButton"
+                class="download-button"
+            >
+                카드 저장하기
+            </button>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script src="script.js"></script>
+
+</body>
+</html>
