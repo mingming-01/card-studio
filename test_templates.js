@@ -1,264 +1,145 @@
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
+const fs = require("fs");
+const path = require("path");
+const vm = require("vm");
 
-// Mock DOM Environment
-const listeners = {};
+const scriptCode = fs.readFileSync(path.join(__dirname, "script.js"), "utf8");
+const STORAGE_KEY = "image-card-editor-templates";
 
-const dummyFunc = () => {};
-const canvasContextMock = new Proxy({
-    measureText: () => ({ width: 100 })
-}, {
-    get: (target, prop) => {
-        if (prop in target) return target[prop];
-        return dummyFunc;
-    }
-});
+function createTestApp() {
+    const listeners = {};
+    const createdElements = [];
+    const dummyFunc = () => {};
+    const canvasContext = new Proxy(
+        { measureText: () => ({ width: 100 }) },
+        { get: (target, property) => target[property] || dummyFunc }
+    );
 
-const mockElements = {
-    imageInput: { addEventListener: () => {}, value: "" },
-    imageStatus: { textContent: "" },
-    canvas: { getContext: () => canvasContextMock, width: 1080, height: 1080 },
-    textInput: { value: "", addEventListener: () => {} },
-    textLength: { textContent: "" },
-    fontSize: { value: "60", addEventListener: () => {} },
-    fontSizeValue: { textContent: "" },
-    textColor: { value: "#222222", addEventListener: () => {} },
-    textColorValue: { textContent: "" },
-    textX: { value: "50", addEventListener: () => {} },
-    textXValue: { textContent: "" },
-    textY: { value: "50", addEventListener: () => {} },
-    textYValue: { textContent: "" },
-    downloadButton: { addEventListener: () => {} },
-    templateName: { value: "" },
-    saveTemplateButton: { addEventListener: (type, cb) => { listeners['saveTemplate'] = cb; } },
-    templateList: { innerHTML: "", appendChild: () => {}, removeAttribute: () => {}, setAttribute: () => {} },
-    templateStatus: { textContent: "" },
-    exportJsonButton: { addEventListener: () => {} },
-    jsonInput: { value: "", addEventListener: () => {} },
-    jsonStatus: { textContent: "" },
-    templateEditArea: { hidden: true },
-    editTemplateName: { value: "", focus: () => {} },
-    confirmEditTemplateButton: { addEventListener: (type, cb) => { listeners['confirmEditTemplate'] = cb; } },
-    cancelEditTemplateButton: { addEventListener: () => {} }
-};
-
-const documentMock = {
-    getElementById: (id) => {
-        if (mockElements[id]) return mockElements[id];
-        return { addEventListener: () => {}, value: "", textContent: "" };
-    },
-    querySelectorAll: (selector) => {
-        return [];
-    },
-    createElement: (tag) => {
-        return {
-            type: "",
-            textContent: "",
-            className: "",
-            addEventListener: () => {},
-            appendChild: () => {},
-            removeAttribute: () => {},
-            setAttribute: () => {}
+    function createElement() {
+        const element = {
+            children: [], className: "", hidden: false, textContent: "", type: "",
+            addEventListener(type, callback) {
+                this.listeners = this.listeners || {};
+                this.listeners[type] = callback;
+            },
+            appendChild(child) { this.children.push(child); },
+            removeAttribute: dummyFunc, setAttribute: dummyFunc
         };
+        createdElements.push(element);
+        return element;
     }
-};
 
-let storage = {};
-const localStorageMock = {
-    getItem: (key) => storage[key] || null,
-    setItem: (key, val) => { storage[key] = val; },
-    clear: () => { storage = {}; }
-};
+    const elements = {
+        imageInput: { addEventListener: dummyFunc, value: "" },
+        imageStatus: { textContent: "" },
+        canvas: { getContext: () => canvasContext, height: 1080, width: 1080 },
+        textInput: { addEventListener: dummyFunc, value: "" }, textLength: { textContent: "" },
+        fontSize: { addEventListener: dummyFunc, value: "60" }, fontSizeValue: { textContent: "" },
+        textColor: { addEventListener: dummyFunc, value: "#222222" }, textColorValue: { textContent: "" },
+        textX: { addEventListener: dummyFunc, value: "50" }, textXValue: { textContent: "" },
+        textY: { addEventListener: dummyFunc, value: "50" }, textYValue: { textContent: "" },
+        downloadButton: { addEventListener: dummyFunc }, templateName: { value: "" },
+        saveTemplateButton: { addEventListener: (type, callback) => { listeners.save = callback; } },
+        templateList: { children: [], innerHTML: "", appendChild(child) { this.children.push(child); } },
+        templateStatus: { textContent: "" }, exportJsonButton: { addEventListener: dummyFunc },
+        jsonInput: { addEventListener: dummyFunc, value: "" }, jsonStatus: { textContent: "" },
+        templateEditArea: { hidden: true }, editTemplateName: { focus: dummyFunc, value: "" },
+        confirmEditTemplateButton: { addEventListener: (type, callback) => { listeners.confirmEdit = callback; } },
+        cancelEditTemplateButton: { addEventListener: dummyFunc }
+    };
+    const storage = {};
+    const localStorage = {
+        getItem: (key) => storage[key] || null,
+        setItem: (key, value) => { storage[key] = value; }
+    };
+    const sandbox = {
+        Image: class {}, URL: { createObjectURL: () => "", revokeObjectURL: dummyFunc },
+        confirm: () => true, console,
+        document: {
+            createElement,
+            getElementById: (id) => elements[id] || { addEventListener: dummyFunc },
+            querySelectorAll: () => []
+        },
+        localStorage, setInterval, setTimeout, window: { localStorage }
+    };
 
-const windowMock = {
-    localStorage: localStorageMock
-};
-
-class ImageMock {}
-
-const sandbox = {
-    document: documentMock,
-    window: windowMock,
-    localStorage: localStorageMock,
-    Image: ImageMock,
-    console: console,
-    setTimeout: setTimeout,
-    setInterval: setInterval,
-    editingTemplateId: null,
-    currentImage: null,
-    currentRatio: "1:1",
-    STORAGE_KEY: "image-card-editor-templates",
-    Date: Date,
-    JSON: JSON,
-    URL: { createObjectURL: () => "", revokeObjectURL: () => "" },
-    confirm: () => true
-};
-
-vm.createContext(sandbox);
-
-// Read script.js content
-const scriptCode = fs.readFileSync(path.join(__dirname, 'script.js'), 'utf8');
-
-// Run script.js in sandbox
-vm.runInContext(scriptCode, sandbox);
-
-// Extract references to the callback functions
-const onSaveTemplate = listeners['saveTemplate'];
-const onConfirmEdit = listeners['confirmEditTemplate'];
-
-if (!onSaveTemplate) {
-    console.error("Failed to extract saveTemplate listener!");
-    process.exit(1);
-}
-if (!onConfirmEdit) {
-    console.error("Failed to extract confirmEditTemplate listener!");
-    process.exit(1);
-}
-
-// Custom showStatus spy to check what message is shown
-let lastStatusMsg = "";
-sandbox.showStatus = (el, msg) => {
-    lastStatusMsg = msg;
-    el.textContent = msg;
-};
-
-// Helper to get saved templates
-function getSavedTemplates() {
-    const val = localStorageMock.getItem("image-card-editor-templates");
-    return val ? JSON.parse(val) : [];
-}
-
-// Helper to clean storage
-function resetState() {
-    localStorageMock.clear();
-    // Re-evaluate script to reset its local variable
+    vm.createContext(sandbox);
     vm.runInContext(scriptCode, sandbox);
-    mockElements.templateName.value = "";
-    mockElements.editTemplateName.value = "";
-    sandbox.editingTemplateId = null;
-    lastStatusMsg = "";
+
+    return {
+        save(name) {
+            elements.templateName.value = name;
+            elements.templateStatus.textContent = "";
+            listeners.save();
+        },
+        edit(nextName) {
+            const editButton = createdElements.find((element) =>
+                element.textContent === "수정" && element.listeners && element.listeners.click
+            );
+            if (!editButton) throw new Error("Could not find the template edit button");
+            editButton.listeners.click();
+            elements.editTemplateName.value = nextName;
+            elements.templateStatus.textContent = "";
+            listeners.confirmEdit();
+        },
+        saved: () => JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"),
+        status: () => elements.templateStatus.textContent
+    };
 }
 
-// Running Tests T01 to T10
-console.log("=== Running T01 to T10 tests ===");
+function report(id, passed, detail) {
+    console.log(`${id}: ${passed ? "PASS" : "FAIL"} (${detail})`);
+    return passed;
+}
 
-// T01
-// 입력: 템플릿이 없는 상태에서 이름 "여행" 저장
-// 기대값: 템플릿 1개가 저장된다.
-resetState();
-mockElements.templateName.value = "여행";
-onSaveTemplate();
-let saved = getSavedTemplates();
-const t01_success = saved.length === 1 && saved[0].name === "여행";
-console.log(`T01: ${t01_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+console.log("=== Running fixed T01 to T10 tests ===");
+const app = createTestApp();
+const results = [];
 
-// T02
-// 입력: "여행"이 존재하는 상태에서 이름 "여행" 저장
-// 기대값: 새 템플릿이 저장되지 않고 중복 안내가 표시된다.
-mockElements.templateName.value = "여행";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t02_success = saved.length === 1 && lastStatusMsg.includes("존재하는");
-console.log(`T02: ${t02_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+// T01: 템플릿이 없는 상태에서 이름 "여행" 저장 → 템플릿 1개가 저장된다.
+app.save("여행");
+results.push(report("T01", app.saved().length === 1 && app.saved()[0].name === "여행", `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T03
-// 입력: "맛집" 저장
-// 기대값: "맛집" 템플릿이 저장된다.
-mockElements.templateName.value = "맛집";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t03_success = saved.length === 2 && saved.some(t => t.name === "맛집");
-console.log(`T03: ${t03_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+// T02: "여행"이 존재하는 상태에서 이름 "여행" 저장 → 저장되지 않고 중복 안내.
+app.save("여행");
+results.push(report("T02", app.saved().length === 1 && app.status().includes("존재하는"), `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T04
-// 입력: "맛집"이 존재하는 상태에서 이름 " 맛집 " 저장
-// 기대값: 새 템플릿이 저장되지 않고 중복 안내가 표시된다.
-mockElements.templateName.value = " 맛집 ";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t04_success = saved.length === 2 && lastStatusMsg.includes("존재하는");
-console.log(`T04: ${t04_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+// T03: "맛집" 저장 → "맛집" 템플릿이 저장된다.
+app.save("맛집");
+results.push(report("T03", app.saved().length === 2 && app.saved().some((t) => t.name === "맛집"), `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T05
-// 입력: 이름에 공백만 입력하여 저장
-// 기대값: 저장되지 않고 이름 입력 오류 안내가 표시된다.
-mockElements.templateName.value = "   ";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t05_success = saved.length === 2 && lastStatusMsg.includes("이름");
-console.log(`T05: ${t05_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+// T04: "맛집"이 존재하는 상태에서 이름 " 맛집 " 저장 → 저장되지 않고 중복 안내.
+app.save(" 맛집 ");
+results.push(report("T04", app.saved().length === 2 && app.status().includes("존재하는"), `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T06
-// 입력: "여행", "맛집"이 존재하는 상태에서 "운동" 저장
-// 기대값: "운동"이 저장되고 총 3개가 된다.
-mockElements.templateName.value = "운동";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t06_success = saved.length === 3 && saved.some(t => t.name === "운동");
-console.log(`T06: ${t06_success ? "PASS" : "FAIL"} (Templates length: ${saved.length}, msg: ${lastStatusMsg})`);
+// T05: 이름에 공백만 입력하여 저장 → 저장되지 않고 이름 입력 오류 안내.
+app.save("   ");
+results.push(report("T05", app.saved().length === 2 && app.status().includes("이름"), `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T07
-// 입력: 기존 "여행" 템플릿을 편집하여 이름을 "맛집"으로 변경
-// 기대값: 변경되지 않고 중복 안내가 표시된다.
-// (templates: "여행", "맛집", "운동")
-let travelTemplate = saved.find(t => t.name === "여행");
-sandbox.editingTemplateId = travelTemplate.id;
-mockElements.editTemplateName.value = "맛집";
-lastStatusMsg = "";
-onConfirmEdit();
-// After confirm edit, the state inside script.js local variable might have been updated.
-// Let's reload saved templates to see if Travel changed.
-saved = getSavedTemplates();
-travelTemplate = saved.find(t => t.id === travelTemplate.id);
-const t07_success = travelTemplate.name === "여행" && lastStatusMsg.includes("존재하는");
-console.log(`T07: ${t07_success ? "PASS" : "FAIL"} (Travel name: ${travelTemplate.name}, msg: ${lastStatusMsg})`);
+// T06: "여행", "맛집"이 존재하는 상태에서 "운동" 저장 → 총 3개.
+app.save("운동");
+results.push(report("T06", app.saved().length === 3 && app.saved().some((t) => t.name === "운동"), `templates: ${app.saved().length}, message: ${app.status()}`));
 
-// T08
-// 입력: 기존 "여행" 템플릿을 편집하면서 이름을 그대로 "여행"으로 유지
-// 기대값: 정상적으로 편집 내용이 저장된다.
-mockElements.editTemplateName.value = "여행";
-lastStatusMsg = "";
-onConfirmEdit();
-saved = getSavedTemplates();
-travelTemplate = saved.find(t => t.id === travelTemplate.id);
-const t08_success = travelTemplate.name === "여행" && lastStatusMsg.includes("수정되었습니다");
-console.log(`T08: ${t08_success ? "PASS" : "FAIL"} (Travel name: ${travelTemplate.name}, msg: ${lastStatusMsg})`);
+// T07: 기존 "여행"을 "맛집"으로 편집 → 변경되지 않고 중복 안내.
+app.edit("맛집");
+results.push(report("T07", app.saved().some((t) => t.name === "여행") && app.status().includes("존재하는"), `templates: ${app.saved().map((t) => t.name).join(", ")}, message: ${app.status()}`));
 
-// T09
-// 입력: 기존 "여행" 템플릿을 편집하여 이름을 " 여행 "으로 변경
-// 기대값: 변경되지 않고 중복 안내가 표시된다.
-mockElements.editTemplateName.value = " 여행 ";
-lastStatusMsg = "";
-onConfirmEdit();
-saved = getSavedTemplates();
-travelTemplate = saved.find(t => t.id === travelTemplate.id);
-const t09_success = travelTemplate.name === "여행" && lastStatusMsg.includes("존재하는");
-console.log(`T09: ${t09_success ? "PASS" : "FAIL"} (Travel name: ${travelTemplate.name}, msg: ${lastStatusMsg})`);
+// T08: 기존 "여행"을 그대로 유지하며 편집 → 정상 저장.
+app.edit("여행");
+results.push(report("T08", app.saved().some((t) => t.name === "여행") && app.status().includes("수정되었습니다"), `templates: ${app.saved().map((t) => t.name).join(", ")}, message: ${app.status()}`));
 
-// T10
-// 입력: "Travel"이 존재하는 상태에서 "travel" 저장
-// 기대값: "travel"이 새 템플릿으로 저장된다.
-resetState();
-mockElements.templateName.value = "Travel";
-onSaveTemplate();
-mockElements.templateName.value = "travel";
-lastStatusMsg = "";
-onSaveTemplate();
-saved = getSavedTemplates();
-const t10_success = saved.length === 2 && saved.some(t => t.name === "travel");
-console.log(`T10: ${t10_success ? "PASS" : "FAIL"} (Templates: ${saved.map(t => t.name).join(', ')}, msg: ${lastStatusMsg})`);
+// T09: 기존 "여행"을 " 여행 "으로 변경 → 변경되지 않고 중복 안내.
+app.edit(" 여행 ");
+results.push(report("T09", app.saved().some((t) => t.name === "여행") && app.status().includes("존재하는"), `templates: ${app.saved().map((t) => t.name).join(", ")}, message: ${app.status()}`));
 
-const allPassed = t01_success && t02_success && t03_success && t04_success && t05_success && t06_success && t07_success && t08_success && t09_success && t10_success;
-if (allPassed) {
-    console.log("\n>>> ALL TESTS PASSED SUCCESSFULLY! <<<");
-    process.exit(0);
+// T10: "Travel"이 있을 때 "travel" 저장 → 새 템플릿으로 저장된다.
+const caseSensitiveApp = createTestApp();
+caseSensitiveApp.save("Travel");
+caseSensitiveApp.save("travel");
+results.push(report("T10", caseSensitiveApp.saved().length === 2 && caseSensitiveApp.saved().some((t) => t.name === "travel"), `templates: ${caseSensitiveApp.saved().map((t) => t.name).join(", ")}, message: ${caseSensitiveApp.status()}`));
+
+if (results.every(Boolean)) {
+    console.log("\n>>> ALL FIXED TESTS PASSED SUCCESSFULLY! <<<");
 } else {
-    console.error("\n>>> SOME TESTS FAILED! <<<");
-    process.exit(1);
+    console.error("\n>>> SOME FIXED TESTS FAILED! <<<");
+    process.exitCode = 1;
 }
