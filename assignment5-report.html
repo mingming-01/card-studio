@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Assignment 5 | 대화가 끊겨도 이어지는 프로젝트</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #f5f6fa;
+            color: #25233a;
+            font-family:
+                "Pretendard",
+                "Noto Sans KR",
+                Arial,
+                sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            width: min(1080px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        header {
+            padding: 70px 0 45px;
+        }
+
+        .eyebrow {
+            color: #5b5bd6;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+        }
+
+        h1 {
+            margin: 10px 0 16px;
+            font-size: clamp(32px, 5vw, 54px);
+            line-height: 1.15;
+        }
+
+        .lead {
+            max-width: 780px;
+            margin: 0;
+            color: #6b7085;
+            font-size: 18px;
+        }
+
+        section {
+            margin-bottom: 22px;
+            padding: 30px;
+            background: white;
+            border: 1px solid #e5e7ef;
+            border-radius: 20px;
+            box-shadow: 0 8px 28px rgba(30, 35, 60, 0.05);
+        }
+
+        h2 {
+            margin: 0 0 20px;
+            font-size: 24px;
+        }
+
+        h3 {
+            margin: 25px 0 8px;
+            font-size: 17px;
+        }
+
+        p {
+            margin: 8px 0;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+            margin-top: 22px;
+        }
+
+        .summary-card {
+            padding: 20px;
+            background: #f1f1ff;
+            border-radius: 15px;
+        }
+
+        .summary-card strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 28px;
+        }
+
+        .summary-card span {
+            color: #6b7085;
+            font-size: 14px;
+        }
+
+        .flow {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .flow-item {
+            padding: 18px;
+            background: #fafaff;
+            border: 1px solid #e5e7ef;
+            border-radius: 14px;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .flow-item small {
+            display: block;
+            margin-top: 5px;
+            color: #777c90;
+            font-weight: 400;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th,
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7ef;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #fafaff;
+            font-weight: 800;
+        }
+
+        .pass {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #e8f7ee;
+            color: #19764a;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .fail {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #fff0ee;
+            color: #b42318;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .warn {
+            display: inline-block;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: #fff5d8;
+            color: #8a5a00;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .note {
+            margin-top: 18px;
+            padding: 16px 18px;
+            background: #fafaff;
+            border-left: 4px solid #5b5bd6;
+            border-radius: 8px;
+        }
+
+        code {
+            padding: 2px 6px;
+            background: #f0f1f5;
+            border-radius: 5px;
+            font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Consolas,
+                monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            overflow-x: auto;
+            padding: 17px;
+            background: #191b26;
+            color: #f4f5f8;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .muted {
+            color: #6b7085;
+            font-size: 14px;
+        }
+
+        footer {
+            padding: 20px 0 60px;
+            color: #777c90;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        @media (max-width: 760px) {
+            .summary,
+            .flow {
+                grid-template-columns: 1fr;
+            }
+
+            section {
+                padding: 22px;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+                white-space: nowrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="container">
+
+    <div class="eyebrow">
+        ALEPH · ASSIGNMENT 5
+    </div>
+
+    <h1>
+        대화가 끊겨도<br>
+        이어지는 프로젝트
+    </h1>
+
+    <p class="lead">
+        기존 프로젝트에 작은 기능을 개선하고,
+        서로 다른 AI 작업 세션이 저장소와 인수인계 문서만으로
+        같은 작업을 이어서 수행할 수 있는지 확인했다.
+    </p>
+
+</header>
+
+
+<main class="container">
+
+    <!-- 1 -->
+    <section>
+
+        <h2>1. 프로젝트와 개선 목표</h2>
+
+        <p>
+            <strong>대상 프로젝트:</strong>
+            card-studio
+        </p>
+
+        <p>
+            <strong>개선 목표:</strong>
+            템플릿 이름 중복 저장 방지
+        </p>
+
+        <p>
+            템플릿 이름을 저장하거나 편집할 때
+            동일한 이름이 중복으로 등록되지 않도록 개선했다.
+        </p>
+
+        <ul>
+            <li>이름 앞뒤 공백 제거 후 비교</li>
+            <li>빈 문자열 및 공백만 입력된 이름 저장 방지</li>
+            <li>동일한 이름의 중복 저장 방지</li>
+            <li>편집 시 다른 템플릿과 동일한 이름으로 변경 방지</li>
+            <li>영문 대소문자는 구분</li>
+        </ul>
+
+        <div class="summary">
+
+            <div class="summary-card">
+                <strong>10/10</strong>
+                <span>최종 고정 검사 통과</span>
+            </div>
+
+            <div class="summary-card">
+                <strong>30분</strong>
+                <span>공통 작업 시간 상한</span>
+            </div>
+
+            <div class="summary-card">
+                <strong>10회</strong>
+                <span>공통 요청·호출 상한</span>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- 2 -->
+    <section>
+
+        <h2>2. 작업 순서</h2>
+
+        <div class="flow">
+
+            <div class="flow-item">
+                기준선
+                <small>0dce09c</small>
+            </div>
+
+            <div class="flow-item">
+                AI A 작업
+                <small>e31be38</small>
+            </div>
+
+            <div class="flow-item">
+                인수인계
+                <small>0770c52</small>
+            </div>
+
+            <div class="flow-item">
+                AI B 작업
+                <small>2ecd143</small>
+            </div>
+
+        </div>
+
+        <div class="note">
+            작업 순서는
+            <strong>A 시작 → A 종료/상태 보존 → 인수인계 → B 시작 → B 종료</strong>
+            로 진행했다.
+        </div>
+
+    </section>
+
+
+    <!-- 3 -->
+    <section>
+
+        <h2>3. 고정 검사 T01~T10</h2>
+
+        <p class="muted">
+            T01~T10은 작업 시작 전에 고정했으며,
+            검사 ID·입력·기대값은 작업 중 변경하지 않았다.
+        </p>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>검사</th>
+                    <th>입력</th>
+                    <th>기대값</th>
+                    <th>최종</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>T01</td>
+                    <td>템플릿이 없는 상태에서 "여행" 저장</td>
+                    <td>템플릿 1개가 저장된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T02</td>
+                    <td>"여행"이 있는 상태에서 "여행" 저장</td>
+                    <td>저장되지 않고 중복 안내가 표시된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T03</td>
+                    <td>"맛집" 저장</td>
+                    <td>"맛집" 템플릿이 저장된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T04</td>
+                    <td>"맛집"이 있는 상태에서 " 맛집 " 저장</td>
+                    <td>저장되지 않고 중복 안내가 표시된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T05</td>
+                    <td>공백만 입력하여 저장</td>
+                    <td>저장되지 않고 이름 입력 오류 안내가 표시된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T06</td>
+                    <td>"운동" 저장</td>
+                    <td>"운동"이 저장되고 총 3개가 된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T07</td>
+                    <td>"여행"을 "맛집"으로 편집</td>
+                    <td>변경되지 않고 중복 안내가 표시된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T08</td>
+                    <td>"여행" 이름을 그대로 유지하며 편집</td>
+                    <td>정상적으로 편집 내용이 저장된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T09</td>
+                    <td>"여행"을 " 여행 "으로 변경</td>
+                    <td>변경되지 않고 중복 안내가 표시된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+                <tr>
+                    <td>T10</td>
+                    <td>"Travel"이 있을 때 "travel" 저장</td>
+                    <td>"travel"이 새 템플릿으로 저장된다.</td>
+                    <td><span class="pass">PASS</span></td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- 4 -->
+    <section>
+
+        <h2>4. AI A 작업 결과</h2>
+
+        <p>
+            A는 <code>script.js</code>에 템플릿 이름 중복 방지 로직을 추가했다.
+        </p>
+
+        <p>
+            또한 T01~T10을 검증하기 위한
+            <code>test_templates.js</code>를 생성했다.
+        </p>
+
+        <p>
+            그러나 자동 테스트 실행 과정에서
+            VM을 다시 실행하면서
+            <code>Identifier 'imageInput' has already been declared</code>
+            오류가 발생했다.
+        </p>
+
+        <p>
+            이후 A가 사용량 제한에 도달하여 작업을 완전히 종료하고
+            정식 커밋을 남기지는 못했다.
+        </p>
+
+        <div class="note">
+            학생은 A의 당시 작업 상태를 보존하기 위해
+            <code>e31be38</code> 커밋을 생성했다.
+            이 커밋은 AI A의 커밋이 아니라 학생이 상태를 보존하기 위한 커밋이다.
+        </div>
+
+    </section>
+
+
+    <!-- 5 -->
+    <section>
+
+        <h2>5. 인수인계</h2>
+
+        <p>
+            A의 작업 상태를 바탕으로 <code>handoff.md</code>를 작성했다.
+            B는 이전 AI 대화 전문을 전달받지 않고 저장소와 인수인계 문서를 기준으로 작업을 이어갔다.
+        </p>
+
+        <p>
+            인수인계 문서에는 다음 7개 항목을 기록했다.
+        </p>
+
+        <ol>
+            <li>목표</li>
+            <li>현재 상태</li>
+            <li>실행 명령</li>
+            <li>통과 검사</li>
+            <li>남은 문제</li>
+            <li>다음 행동</li>
+            <li>건드리지 말 것</li>
+        </ol>
+
+        <p>
+            B는 현재 <code>script.js</code>의 앱 로직이 요구사항을 충족한다고 판단했고,
+            앱 로직을 변경하지 않고 테스트 하네스 문제를 해결했다.
+        </p>
+
+    </section>
+
+
+    <!-- 6 -->
+    <section>
+
+        <h2>6. AI B 작업 결과</h2>
+
+        <p>
+            B는 <code>test_templates.js</code>의 VM 재실행 문제를 수정했다.
+        </p>
+
+        <p>
+            또한 편집 검사가 실제 템플릿 수정 버튼 이벤트를 통해 실행되도록 보완했다.
+        </p>
+
+        <p>
+            수정 후 동일한 T01~T10을 실행했고,
+            <strong>10개 모두 PASS</strong>를 확인했다.
+        </p>
+
+        <p>
+            추가로 다음 검사도 통과했다.
+        </p>
+
+        <ul>
+            <li><code>node --check script.js</code></li>
+            <li><code>node --check test_templates.js</code></li>
+            <li><code>git diff --check</code></li>
+        </ul>
+
+        <div class="note">
+            B는 앱 기능을 다시 수정하는 대신,
+            실제 문제였던 테스트 하네스만 수정했다.
+        </div>
+
+    </section>
+
+
+    <!-- 7 -->
+    <section>
+
+        <h2>7. 실제 측정 결과</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>항목</th>
+                    <th>A</th>
+                    <th>B</th>
+                    <th>공통 기준</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>작업 시간</td>
+                    <td>약 9분 11초</td>
+                    <td>6분 13초</td>
+                    <td>30분 이하</td>
+                </tr>
+
+                <tr>
+                    <td>요청·호출</td>
+                    <td>26회</td>
+                    <td>확인 가능한 기록 없음</td>
+                    <td>10회 이하</td>
+                </tr>
+
+                <tr>
+                    <td>최종 T01~T10</td>
+                    <td>완료 전 테스트 오류</td>
+                    <td>10/10 PASS</td>
+                    <td>동일 검사</td>
+                </tr>
+
+                <tr>
+                    <td>추가 라인</td>
+                    <td>+298</td>
+                    <td>+124</td>
+                    <td>생성 파일·lockfile 제외</td>
+                </tr>
+
+                <tr>
+                    <td>삭제 라인</td>
+                    <td>0</td>
+                    <td>-243</td>
+                    <td>생성 파일·lockfile 제외</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+        <div class="note">
+            <strong>A 요청·호출 수:</strong>
+            26회로 사전에 정한 10회 상한을 초과했다.
+        </div>
+
+        <div class="note">
+            <strong>B 요청·호출 수:</strong>
+            현재 확보된 작업 결과에서 정확한 횟수를 확인할 수 없으므로
+            임의의 숫자를 기록하지 않았다.
+        </div>
+
+    </section>
+
+
+    <!-- 8 -->
+    <section>
+
+        <h2>8. Git 버전 기록</h2>
+
+        <table>
+
+            <thead>
+                <tr>
+                    <th>단계</th>
+                    <th>커밋</th>
+                    <th>내용</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                <tr>
+                    <td>기준선</td>
+                    <td><code>0dce09c</code></td>
+                    <td>고정 검사 및 공통 제한 기록</td>
+                </tr>
+
+                <tr>
+                    <td>A 상태 보존</td>
+                    <td><code>e31be38</code></td>
+                    <td>A의 부분 작업 보존</td>
+                </tr>
+
+                <tr>
+                    <td>인수인계</td>
+                    <td><code>0770c52</code></td>
+                    <td>handoff.md 추가</td>
+                </tr>
+
+                <tr>
+                    <td>B 최종</td>
+                    <td><code>2ecd143</code></td>
+                    <td>테스트 하네스 수정 및 T01~T10 검증</td>
+                </tr>
+
+            </tbody>
+
+        </table>
+
+    </section>
+
+
+    <!-- 9 -->
+    <section>
+
+        <h2>9. 검증 방법</h2>
+
+        <ol>
+            <li>
+                <strong>어디서:</strong>
+                <code>~/Ritual/card-studio</code>
+            </li>
+
+            <li>
+                <strong>실행:</strong>
+                <code>node test_templates.js</code>
+            </li>
+
+            <li>
+                <strong>통과 모습:</strong>
+                T01~T10이 각각 <code>PASS</code>로 표시된다.
+            </li>
+
+            <li>
+                <strong>실패 모습:</strong>
+                하나라도 실패하면 해당 검사에서 <code>FAIL</code>이 표시되거나
+                실행 오류가 발생한다.
+            </li>
+        </ol>
+
+        <pre>cd ~/Ritual/card-studio
+node test_templates.js</pre>
+
+    </section>
+
+
+    <!-- 10 -->
+    <section>
+
+        <h2>10. 나의 판단</h2>
+
+        <h3>도구 선택 기준</h3>
+
+        <p>
+            프로젝트 파일을 직접 읽고 수정하며,
+            실행과 검증까지 이어서 수행할 수 있는지를 기준으로 선택했다.
+        </p>
+
+        <h3>AI에게 맡긴 판단</h3>
+
+        <p>
+            코드 구조 분석, 현재 구현 상태 확인,
+            테스트 하네스 오류 원인 분석,
+            필요한 코드 수정과 T01~T10 실행을 AI에게 맡겼다.
+        </p>
+
+        <h3>내가 직접 판단한 부분</h3>
+
+        <p>
+            개선 범위와 고정 검사,
+            시간·요청 상한,
+            인수인계 범위,
+            기존 기능을 변경하지 않는 조건을 직접 정했다.
+        </p>
+
+        <p>
+            또한 실제 측정값을 임의로 수정하지 않고,
+            A의 요청 수 상한 초과와 B 요청 수 미확인을 그대로 기록했다.
+        </p>
+
+        <h3>AI 제안을 따르지 않은 부분</h3>
+
+        <p>
+            확인되지 않은 수치를 추정하여 채우지 않고,
+            실제로 확인할 수 있는 기록만 결과에 사용했다.
+        </p>
+
+    </section>
+
+
+    <!-- 11 -->
+    <section>
+
+        <h2>11. 재현 방법</h2>
+
+        <p>
+            저장소를 받은 후 다음 명령으로 웹 앱과 테스트를 실행할 수 있다.
+        </p>
+
+        <pre>cd ~/Ritual/card-studio
+python3 -m http.server 8080</pre>
+
+        <p>
+            브라우저:
+            <code>http://127.0.0.1:8080/</code>
+        </p>
+
+        <p>
+            테스트는 별도 터미널에서 다음과 같이 실행한다.
+        </p>
+
+        <pre>cd ~/Ritual/card-studio
+node test_templates.js</pre>
+
+    </section>
+
+</main>
+
+
+<footer class="container">
+    Assignment 5 · card-studio · 고정 검사와 실제 작업 기록을 기준으로 작성
+</footer>
+
+</body>
+</html>
