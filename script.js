@@ -591,6 +591,21 @@ saveTemplateButton.addEventListener(
         }
 
 
+        const isDuplicate = templates.some(
+            (t) => t.name.trim() === name
+        );
+
+        if (isDuplicate) {
+
+            showStatus(
+                templateStatus,
+                "이미 존재하는 템플릿 이름입니다."
+            );
+
+            return;
+        }
+
+
         const template = {
 
             id: createId(),
@@ -819,6 +834,25 @@ confirmEditTemplateButton.addEventListener(
         if (!target) {
             return;
         }
+
+
+        if (editTemplateName.value !== target.name) {
+
+            const isDuplicate = templates.some(
+                (t) => t.name.trim() === trimmed
+            );
+
+            if (isDuplicate) {
+
+                showStatus(
+                    templateStatus,
+                    "이미 존재하는 템플릿 이름입니다."
+                );
+
+                return;
+            }
+        }
+
 
         target.name =
             trimmed;
